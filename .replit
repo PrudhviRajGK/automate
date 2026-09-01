@@ -1,0 +1,43 @@
+# Replit configuration for AUTO-MATE
+#
+# Runs the full stack behind a single ingress port (8000):
+#   /api/automation/*  -> automation backend (127.0.0.1:18001, uvx)
+#   /api/*, /sockets   -> agent server        (127.0.0.1:18000, uvx)
+#   /*                 -> static SPA build + SPA fallback
+#
+# The ingress binds dual-stack (::) so Replit's proxy can reach it.
+
+modules = ["nodejs-22", "python-3.12"]
+entrypoint = "package.json"
+run = "bash scripts/replit-start.sh"
+
+hidden = [".config", "build", "node_modules", ".react-router"]
+
+[nix]
+channel = "stable-24_05"
+
+[deployment]
+# Reserved VM: the agent server is stateful (long-lived conversations, tmux
+# bash sessions, on-disk state). Autoscale would kill sessions between requests.
+deploymentTarget = "vm"
+build = ["bash", "scripts/replit-build.sh"]
+run = ["bash", "scripts/replit-start.sh"]
+
+[[ports]]
+localPort = 8000
+externalPort = 80
+
+[env]
+# Ingress port that Replit exposes.
+PORT = "8000"
+# Keep uv/uvx caches and Python installs inside the repl's persistent disk.
+UV_CACHE_DIR = "/home/runner/.cache/uv"
+XDG_DATA_HOME = "/home/runner/.local/share"
+# State (conversations, settings, automation DB) lives on the persistent disk.
+OH_CANVAS_SAFE_STATE_DIR = "/home/runner/.openhands/agent-canvas"
+
+[unitTest]
+language = "nodejs"
+
+[gitHubImport]
+requiredFiles = [".replit", "replit.nix"]
