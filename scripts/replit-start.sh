@@ -8,6 +8,9 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
+# uv may have been pip-installed into ~/.local/bin by replit-build.sh.
+export PATH="$HOME/.local/bin:$PATH"
+
 PORT="${PORT:-8000}"
 
 # --- Auth -------------------------------------------------------------------

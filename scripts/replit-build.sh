@@ -9,6 +9,15 @@ cd "$(dirname "$0")/.."
 
 echo "==> Node $(node -v), npm $(npm -v)"
 
+# uv/uvx drives the Python backends. replit.nix provides pkgs.uv; if the
+# channel does not expose it, fall back to pip so the deploy still works.
+if ! command -v uvx >/dev/null 2>&1; then
+  echo "==> uvx not on PATH, installing uv via pip"
+  python3 -m pip install --user --upgrade uv || pip install --user --upgrade uv
+  export PATH="$HOME/.local/bin:$PATH"
+fi
+command -v uvx >/dev/null 2>&1 && echo "==> uvx: $(command -v uvx)" || echo "WARN: uvx still missing"
+
 echo "==> Installing JS dependencies"
 if [ -f package-lock.json ]; then
   npm ci
